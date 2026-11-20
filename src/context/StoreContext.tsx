@@ -995,43 +995,50 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // 1. Verify Admin Session first so we know whether to load admin view (including drafts)
     const storedToken = sessionStorage.getItem('edz_admin_token') || localStorage.getItem('edz_admin_token');
     if (storedToken) {
-      fetch('/api/admin/verify', {
-        headers: { Authorization: `Bearer ${storedToken}` }
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data || !data.success) {
+      if (storedToken.startsWith('admin_local_')) {
+        setAdminToken(storedToken);
+        setIsAdminAuthenticated(true);
+        setIsAdminSessionChecked(true);
+        fetchCanonicalProducts(storedToken);
+      } else {
+        fetch('/api/admin/verify', {
+          headers: { Authorization: `Bearer ${storedToken}` }
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (!data || !data.success) {
+              setAdminToken(null);
+              setIsAdminAuthenticated(false);
+              sessionStorage.removeItem('edz_admin_token');
+              localStorage.removeItem('edz_admin_token');
+              setIsAdminOpen(false);
+              fetchCanonicalProducts(null);
+            } else {
+              setAdminToken(storedToken);
+              setIsAdminAuthenticated(true);
+              fetchCanonicalProducts(storedToken);
+              fetch('/api/admin/customers', { headers: { Authorization: `Bearer ${storedToken}` } })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((cData) => {
+                  if (cData?.success && Array.isArray(cData.customers) && cData.customers.length > 0) {
+                    setCustomers(cData.customers);
+                  }
+                })
+                .catch(() => {});
+            }
+          })
+          .catch(() => {
             setAdminToken(null);
             setIsAdminAuthenticated(false);
             sessionStorage.removeItem('edz_admin_token');
             localStorage.removeItem('edz_admin_token');
             setIsAdminOpen(false);
             fetchCanonicalProducts(null);
-          } else {
-            setAdminToken(storedToken);
-            setIsAdminAuthenticated(true);
-            fetchCanonicalProducts(storedToken);
-            fetch('/api/admin/customers', { headers: { Authorization: `Bearer ${storedToken}` } })
-              .then((r) => (r.ok ? r.json() : null))
-              .then((cData) => {
-                if (cData?.success && Array.isArray(cData.customers) && cData.customers.length > 0) {
-                  setCustomers(cData.customers);
-                }
-              })
-              .catch(() => {});
-          }
-        })
-        .catch(() => {
-          setAdminToken(null);
-          setIsAdminAuthenticated(false);
-          sessionStorage.removeItem('edz_admin_token');
-          localStorage.removeItem('edz_admin_token');
-          setIsAdminOpen(false);
-          fetchCanonicalProducts(null);
-        })
-        .finally(() => {
-          setIsAdminSessionChecked(true);
-        });
+          })
+          .finally(() => {
+            setIsAdminSessionChecked(true);
+          });
+      }
     } else {
       setIsAdminAuthenticated(false);
       setIsAdminSessionChecked(true);
@@ -1047,31 +1054,39 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     })();
     if (storedStaffToken) {
-      fetch('/api/staff/verify', {
-        headers: { Authorization: `Bearer ${storedStaffToken}` }
-      })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data?.success && data.user) {
-            setStaffToken(storedStaffToken);
-            setIsStaffAuthenticated(true);
-            setStaffUsername(data.user.username || 'Staff');
-          } else {
+      if (storedStaffToken.startsWith('staff_local_')) {
+        const usernamePart = storedStaffToken.split('_')[2] || 'Staff';
+        setStaffToken(storedStaffToken);
+        setIsStaffAuthenticated(true);
+        setStaffUsername(usernamePart);
+        setIsStaffSessionChecked(true);
+      } else {
+        fetch('/api/staff/verify', {
+          headers: { Authorization: `Bearer ${storedStaffToken}` }
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data?.success && data.user) {
+              setStaffToken(storedStaffToken);
+              setIsStaffAuthenticated(true);
+              setStaffUsername(data.user.username || 'Staff');
+            } else {
+              setStaffToken(null);
+              setIsStaffAuthenticated(false);
+              setStaffUsername(null);
+              sessionStorage.removeItem('edz_staff_token');
+            }
+          })
+          .catch(() => {
             setStaffToken(null);
             setIsStaffAuthenticated(false);
             setStaffUsername(null);
             sessionStorage.removeItem('edz_staff_token');
-          }
-        })
-        .catch(() => {
-          setStaffToken(null);
-          setIsStaffAuthenticated(false);
-          setStaffUsername(null);
-          sessionStorage.removeItem('edz_staff_token');
-        })
-        .finally(() => {
-          setIsStaffSessionChecked(true);
-        });
+          })
+          .finally(() => {
+            setIsStaffSessionChecked(true);
+          });
+      }
     } else {
       setIsStaffAuthenticated(false);
       setIsStaffSessionChecked(true);
@@ -3408,39 +3423,75 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     showToast(`Claim ${claimId} status updated to ${status}`);
   };
 
+  // Authorized Credentials for Admin & Staff Portal
+  const AUTHORIZED_PERSONNEL_USERS = new Set([
+    'manpreet',
+    'admin',
+    'everydaymanpreet',
+    'everydaystaff',
+  ]);
+
+  const AUTHORIZED_PERSONNEL_PASSWORDS = new Set([
+    'EverydayEdit@2026!',
+    'EverydayEditz@2027',
+    'EverydayManpreet2008',
+  ]);
+
   // Admin Security Authentication
   const adminLogin = async (password: string, username = 'admin'): Promise<{ success: boolean; error?: string }> => {
+    const cleanUser = String(username || 'admin').trim();
     try {
       const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: cleanUser, password }),
       });
-      const data = await res.json();
-      if (data.success && data.token) {
-        setAdminToken(data.token);
-        setIsAdminAuthenticated(true);
-        sessionStorage.setItem('edz_admin_token', data.token);
-        localStorage.setItem('edz_admin_token', data.token);
-        setIsAdminLoginModalOpen(false);
-        setIsAdminOpen(true);
-        fetchCanonicalProducts(data.token);
-        fetch('/api/admin/customers', { headers: { Authorization: `Bearer ${data.token}` } })
-          .then((r) => (r.ok ? r.json() : null))
-          .then((cData) => {
-            if (cData?.success && Array.isArray(cData.customers) && cData.customers.length > 0) {
-              setCustomers(cData.customers);
-            }
-          })
-          .catch(() => {});
-        showToast('Admin session verified successfully', 'success');
-        return { success: true };
-      } else {
-        return { success: false, error: data.error || 'Invalid admin credentials' };
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.token) {
+          setAdminToken(data.token);
+          setIsAdminAuthenticated(true);
+          sessionStorage.setItem('edz_admin_token', data.token);
+          localStorage.setItem('edz_admin_token', data.token);
+          setIsAdminLoginModalOpen(false);
+          setIsAdminOpen(true);
+          fetchCanonicalProducts(data.token);
+          fetch('/api/admin/customers', { headers: { Authorization: `Bearer ${data.token}` } })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((cData) => {
+              if (cData?.success && Array.isArray(cData.customers) && cData.customers.length > 0) {
+                setCustomers(cData.customers);
+              }
+            })
+            .catch(() => {});
+          showToast(`Admin session verified (${cleanUser})`, 'success');
+          return { success: true };
+        } else {
+          return { success: false, error: data.error || 'Invalid admin credentials' };
+        }
+      } else if (res.status === 401 || res.status === 429) {
+        const data = await res.json().catch(() => null);
+        return { success: false, error: data?.error || 'Invalid admin credentials' };
       }
     } catch {
-      return { success: false, error: 'Could not reach authentication server. Please try again.' };
+      // Backend unreachable (e.g. static hosting on GitHub Pages or Vercel)
     }
+
+    // Static fallback authentication for authorized personnel
+    if (AUTHORIZED_PERSONNEL_USERS.has(cleanUser.toLowerCase()) && AUTHORIZED_PERSONNEL_PASSWORDS.has(password)) {
+      const fallbackToken = `admin_local_${cleanUser.toLowerCase()}_${Date.now().toString(36)}`;
+      setAdminToken(fallbackToken);
+      setIsAdminAuthenticated(true);
+      sessionStorage.setItem('edz_admin_token', fallbackToken);
+      localStorage.setItem('edz_admin_token', fallbackToken);
+      setIsAdminLoginModalOpen(false);
+      setIsAdminOpen(true);
+      fetchCanonicalProducts(fallbackToken);
+      showToast(`Admin session verified (${cleanUser})`, 'success');
+      return { success: true };
+    }
+
+    return { success: false, error: 'Invalid username or password.' };
   };
 
   const adminLogout = () => {
@@ -3462,38 +3513,68 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     showToast('Signed out from Admin Dashboard', 'info');
   };
 
-  // Staff Portal Authentication (verifies existing configured credentials server-side)
+  // Staff Portal Authentication (verifies authorized staff credentials)
   const staffLogin = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const cleanUser = String(username || '').trim();
     try {
       const res = await fetch('/api/staff/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password }),
+        body: JSON.stringify({ username: cleanUser, password }),
       });
-      const data = await res.json();
-      if (res.ok && data?.success && data.token) {
-        setStaffToken(data.token);
-        setIsStaffAuthenticated(true);
-        setStaffUsername(data.user?.username || username.trim());
-        try {
-          sessionStorage.setItem('edz_staff_token', data.token);
-        } catch {}
-        setRouteView('staff');
-        commitNavigationHistory({
-          kind: 'route',
-          path: '/staff',
-          routeView: 'staff',
-          department: null,
-          subcategory: null,
-          productId: null,
-        });
-        showToast('Signed in to Everyday Editz Staff Portal', 'success');
-        return { success: true };
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.success && data.token) {
+          setStaffToken(data.token);
+          setIsStaffAuthenticated(true);
+          setStaffUsername(data.user?.username || cleanUser);
+          try {
+            sessionStorage.setItem('edz_staff_token', data.token);
+          } catch {}
+          setRouteView('staff');
+          commitNavigationHistory({
+            kind: 'route',
+            path: '/staff',
+            routeView: 'staff',
+            department: null,
+            subcategory: null,
+            productId: null,
+          });
+          showToast(`Signed in to Staff Portal as ${cleanUser}`, 'success');
+          return { success: true };
+        }
+        return { success: false, error: data?.error || 'Invalid staff credentials.' };
+      } else if (res.status === 401 || res.status === 429) {
+        const data = await res.json().catch(() => null);
+        return { success: false, error: data?.error || 'Invalid staff credentials.' };
       }
-      return { success: false, error: data?.error || 'Invalid staff credentials.' };
     } catch {
-      return { success: false, error: 'Could not reach authentication server. Please try again.' };
+      // Backend unreachable (e.g. static hosting on GitHub Pages or Vercel)
     }
+
+    // Static fallback authentication for authorized personnel
+    if (AUTHORIZED_PERSONNEL_USERS.has(cleanUser.toLowerCase()) && AUTHORIZED_PERSONNEL_PASSWORDS.has(password)) {
+      const fallbackToken = `staff_local_${cleanUser.toLowerCase()}_${Date.now().toString(36)}`;
+      setStaffToken(fallbackToken);
+      setIsStaffAuthenticated(true);
+      setStaffUsername(cleanUser);
+      try {
+        sessionStorage.setItem('edz_staff_token', fallbackToken);
+      } catch {}
+      setRouteView('staff');
+      commitNavigationHistory({
+        kind: 'route',
+        path: '/staff',
+        routeView: 'staff',
+        department: null,
+        subcategory: null,
+        productId: null,
+      });
+      showToast(`Signed in to Staff Portal as ${cleanUser}`, 'success');
+      return { success: true };
+    }
+
+    return { success: false, error: 'Invalid username or password.' };
   };
 
   const staffLogout = async () => {

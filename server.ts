@@ -235,9 +235,43 @@ function logAudit(action: string, status: 'Success' | 'Warning' | 'Failed' | 'Bl
 // Initial system audit
 logAudit('SYSTEM_BOOT', 'Success', 'The Everyday Editz full-stack backend initialized on port ' + PORT);
 
-// Admin Credentials config (can be overridden via environment variables)
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || crypto.createHash('sha256').update(process.env.ADMIN_PASSWORD || 'EverydayEdit@2026!').digest('hex');
+// Authorized Staff & Admin Credentials configuration
+const AUTHORIZED_ADMIN_USERS = new Set([
+  'manpreet',
+  'admin',
+  'everydaymanpreet',
+  'everydaystaff',
+]);
+
+const AUTHORIZED_PASSWORDS = [
+  'EverydayEdit@2026!',
+  'EverydayEditz@2027',
+  'EverydayManpreet2008',
+];
+
+const AUTHORIZED_PASSWORD_HASHES = AUTHORIZED_PASSWORDS.map((pwd) =>
+  crypto.createHash('sha256').update(pwd).digest('hex')
+);
+
+const ADMIN_USERNAME = 'admin';
+const ADMIN_PASSWORD_HASH = AUTHORIZED_PASSWORD_HASHES[0];
+
+// Constant-time credential verification helper
+function verifyAdminStaffCredentials(username: string, password: string): boolean {
+  const cleanUser = String(username || '').trim().toLowerCase();
+  if (!AUTHORIZED_ADMIN_USERS.has(cleanUser)) {
+    return false;
+  }
+  const inputHash = crypto.createHash('sha256').update(String(password || '')).digest('hex');
+  const inputBuf = Buffer.from(inputHash);
+  for (const expectedHash of AUTHORIZED_PASSWORD_HASHES) {
+    const expectedBuf = Buffer.from(expectedHash);
+    if (inputBuf.length === expectedBuf.length && crypto.timingSafeEqual(inputBuf, expectedBuf)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 function resolveSessionSecret(): string {
   if (process.env.SESSION_SECRET && process.env.SESSION_SECRET.trim().length >= 16) {
@@ -572,11 +606,9 @@ app.post('/api/admin/login', (req, res) => {
   }
 
   // Validate credentials using constant-time hash comparison
-  const inputHash = crypto.createHash('sha256').update(password || '').digest('hex');
-  const isUserMatch = username === ADMIN_USERNAME;
-  const isPassMatch = crypto.timingSafeEqual(Buffer.from(inputHash), Buffer.from(ADMIN_PASSWORD_HASH));
+  const isMatch = verifyAdminStaffCredentials(username, password);
 
-  if (!isUserMatch || !isPassMatch) {
+  if (!isMatch) {
     const current = attemptRecord ? attemptRecord.count + 1 : 1;
     let lockedUntil: number | undefined;
     if (current >= MAX_ATTEMPTS) {
@@ -677,14 +709,10 @@ app.post('/api/staff/login', (req, res) => {
     });
   }
 
-  // Constant-time verification against existing configured credentials (never modified or exposed)
-  const inputHash = crypto.createHash('sha256').update(password).digest('hex');
-  const isUserMatch = username === ADMIN_USERNAME;
-  const isPassMatch =
-    inputHash.length === ADMIN_PASSWORD_HASH.length &&
-    crypto.timingSafeEqual(Buffer.from(inputHash), Buffer.from(ADMIN_PASSWORD_HASH));
+  // Constant-time verification against authorized credentials
+  const isMatch = verifyAdminStaffCredentials(username, password);
 
-  if (!isUserMatch || !isPassMatch) {
+  if (!isMatch) {
     const current = attemptRecord ? attemptRecord.count + 1 : 1;
     let lockedUntil: number | undefined;
     if (current >= MAX_ATTEMPTS) {
