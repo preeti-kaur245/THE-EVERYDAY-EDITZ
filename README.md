@@ -15,7 +15,7 @@ The platform aims to combine the familiar shopping experience of major e-commerc
 
 ## LIVE ON 
 **VERCEL** https://the-everyday-editz.vercel.app/
-**GITHUB** https://github.com/preeti-kaur245/THE-EVERYDAY-EDITZ
+**GITHUB** https://preeti-kaur245.github.io/THE-EVERYDAY-EDITZ/
 
 ### ✨ Key Features
 
