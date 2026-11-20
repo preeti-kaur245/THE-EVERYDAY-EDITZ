@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../context/StoreContext';
+import { BRAND_LOGO_URL } from '../utils/assetUrl';
 import { Department } from '../types';
 import { 
   X, 
@@ -173,7 +174,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         <div className="p-4 sm:p-5 border-b border-black/8 bg-white flex items-center justify-between shrink-0 shadow-2xs">
           <div className="flex items-center space-x-2.5">
             <img 
-              src="/brand-logo.jpg" 
+              src={BRAND_LOGO_URL} 
               alt="Everyday Editz" 
               className="w-8 h-8 rounded-full object-cover ring-1 ring-[#D9A6A0]/60 shadow-xs"
             />

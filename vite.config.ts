@@ -1,15 +1,19 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
-import {defineConfig} from 'vite';
+import { fileURLToPath } from 'url';
+import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: '/THE-EVERYDAY-EDITZ/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': fileURLToPath(new URL('.', import.meta.url)),
       },
+    },
+    define: {
+      'process.env': {},
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

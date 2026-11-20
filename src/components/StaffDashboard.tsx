@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from '../context/StoreContext';
+import { BRAND_LOGO_URL } from '../utils/assetUrl';
 import { Department, DepartmentConfig, Order, Product, ReelVideo } from '../types';
 import {
   LayoutDashboard,
@@ -355,8 +356,8 @@ export const StaffDashboard: React.FC = () => {
       subcategories: prodSubcats,
       isPublished: prodPublished,
       isFeatured: prodFeatured,
-      images: prodImages.length ? prodImages : ['/brand-logo.jpg'],
-      primaryImage: prodImages[0] || '/brand-logo.jpg',
+      images: prodImages.length ? prodImages : [BRAND_LOGO_URL],
+      primaryImage: prodImages[0] || BRAND_LOGO_URL,
     };
 
     try {
@@ -1126,7 +1127,7 @@ export const StaffDashboard: React.FC = () => {
                       {filteredProducts.map((p) => {
                         const draftPrice = inlinePrices[p.id] ?? String(p.price);
                         const priceDirty = Number(draftPrice) > 0 && Number(draftPrice) !== p.price;
-                        const imgSrc = p.primaryImage || p.images?.[0] || '/brand-logo.jpg';
+                        const imgSrc = p.primaryImage || p.images?.[0] || BRAND_LOGO_URL;
                         const isLive = p.isPublished !== false && p.status !== 'Draft';
 
                         return (

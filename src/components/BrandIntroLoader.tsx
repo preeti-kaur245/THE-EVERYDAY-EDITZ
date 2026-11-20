@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { BRAND_LOGO_URL } from '../utils/assetUrl';
 
 interface BrandIntroLoaderProps {
   onComplete?: () => void;
@@ -114,7 +115,7 @@ export const BrandIntroLoader: React.FC<BrandIntroLoaderProps> = ({ onComplete }
           {/* Emblem Container with Fine Rose-Gold Border */}
           <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full p-1 bg-white shadow-xl ring-1 ring-[#D9A6A0]/40 overflow-hidden flex items-center justify-center">
             <img
-              src="/brand-logo.jpg"
+              src={BRAND_LOGO_URL}
               alt="The Everyday Editz Insignia"
               className="w-full h-full object-cover rounded-full"
             />

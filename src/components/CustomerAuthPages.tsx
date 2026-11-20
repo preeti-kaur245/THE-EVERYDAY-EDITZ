@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
+import { BRAND_LOGO_URL } from '../utils/assetUrl';
 import authEditorialImg from '../assets/images/auth_editorial_pearl_1795102741911.jpg';
 import {
   ArrowLeft,
@@ -416,7 +417,7 @@ export const CustomerAuthPages: React.FC = () => {
             className="flex items-center gap-3 text-left group cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white/80 rounded-xl"
           >
             <img
-              src="/brand-logo.jpg"
+              src={BRAND_LOGO_URL}
               alt="The Everyday Editz"
               className="w-10 h-10 rounded-full object-cover ring-1 ring-white/50 shadow-sm"
             />
@@ -468,7 +469,7 @@ export const CustomerAuthPages: React.FC = () => {
             className="flex lg:hidden items-center gap-2 cursor-pointer"
           >
             <img
-              src="/brand-logo.jpg"
+              src={BRAND_LOGO_URL}
               alt="The Everyday Editz"
               className="w-7 h-7 rounded-full object-cover ring-1 ring-[#D9A6A0]/60"
             />

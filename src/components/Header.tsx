@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
+import { BRAND_LOGO_URL } from '../utils/assetUrl';
 import { Department } from '../types';
 import {
   Search,
@@ -86,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome }) => {
             aria-label="The Everyday Editz Home"
           >
             <img
-              src="/brand-logo.jpg"
+              src={BRAND_LOGO_URL}
               alt="The Everyday Editz"
               className="w-7 h-7 sm:w-9 sm:h-9 rounded-full object-cover ring-1 ring-[#D9A6A0]/55 shadow-xs group-hover:scale-105 transition-transform shrink-0"
             />

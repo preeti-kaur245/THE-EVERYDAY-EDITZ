@@ -2102,6 +2102,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const navVersionRef = useRef<number>(0);
   const didInitHistoryRef = useRef<boolean>(false);
 
+  const getAppBasePath = (): string => {
+    const base = import.meta.env.BASE_URL || '/';
+    return base.endsWith('/') ? base : `${base}/`;
+  };
+
+  const getNormalizedPathname = (customPath?: string): string => {
+    if (typeof window === 'undefined') return '/';
+    const raw = customPath !== undefined ? customPath : window.location.pathname;
+    const base = getAppBasePath();
+    const baseWithoutTrailing = base.replace(/\/+$/, '');
+    let p = raw;
+    if (baseWithoutTrailing && p.startsWith(baseWithoutTrailing)) {
+      p = p.slice(baseWithoutTrailing.length);
+    }
+    return p.replace(/\/+$/, '') || '/';
+  };
+
+  const toAppUrl = (path: string): string => {
+    const base = getAppBasePath();
+    if (base === '/') return path;
+    const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${cleanBase}${cleanPath}`;
+  };
+
   const getCurrentFullPath = () => {
     if (typeof window === 'undefined') return '/';
     return `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -2154,8 +2179,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (typeof window === 'undefined') {
       return { kind: 'route', path: '/', routeView: 'home', department: null, subcategory: null, product: null };
     }
-    const rawPathname = window.location.pathname;
-    const pathname = rawPathname.replace(/\/+$/, '') || '/';
+    const pathname = getNormalizedPathname();
     const hash = window.location.hash || '';
     const fullPath = getCurrentFullPath();
     const curProducts = productsRef.current;
@@ -2269,6 +2293,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
 
+      const targetUrl = toAppUrl(next.path);
       // Otherwise replace that overlay's history entry with the new destination so Back returns to the page before the drawer
       const replacedState: EdzHistoryState = {
         __edzNav: true,
@@ -2283,7 +2308,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         policyTab: null,
         scrollY: 0,
       };
-      window.history.replaceState(replacedState, '', next.path);
+      window.history.replaceState(replacedState, '', targetUrl);
       currentDepthRef.current = existing.depth;
       return;
     }
@@ -2298,6 +2323,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     const nextDepth = currentDepthRef.current + 1;
+    const targetUrl = toAppUrl(next.path);
     const pushedState: EdzHistoryState = {
       __edzNav: true,
       depth: nextDepth,
@@ -2311,7 +2337,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       policyTab: null,
       scrollY: 0,
     };
-    window.history.pushState(pushedState, '', next.path);
+    window.history.pushState(pushedState, '', targetUrl);
     currentDepthRef.current = nextDepth;
     syncedOverlaysRef.current = [];
     overlayOrderRef.current = [];
@@ -2362,7 +2388,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       // Direct deep-link landing on /product/:slug (depth === 0): replace cleanly to fallback route
-      if (window.location.pathname.startsWith('/product/')) {
+      if (getNormalizedPathname().startsWith('/product/')) {
         const fallbackPath = selectedDepartmentRef.current
           ? selectedSubcategoryRef.current
             ? `/category/${selectedDepartmentRef.current}/${encodeURIComponent(
@@ -2395,7 +2421,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           policyTab: null,
           scrollY: 0,
         };
-        window.history.replaceState(replaced, '', fallbackPath);
+        window.history.replaceState(replaced, '', toAppUrl(fallbackPath));
       }
     });
   };
@@ -2506,7 +2532,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Resolve deep-linked /product/:slug or /category/:dept/:subcat once canonical products/departments arrive
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
+    const pathname = getNormalizedPathname();
 
     if (pathname.startsWith('/product/') && !selectedProductRef.current && products.length > 0) {
       const slugOrId = decodeURIComponent(pathname.replace('/product/', ''));
@@ -2706,7 +2732,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (returnTo) {
       setAuthReturnTo(returnTo);
     } else if (typeof window !== 'undefined') {
-      const currentPath = window.location.pathname;
+      const currentPath = getNormalizedPathname();
       const isAlreadyAuth = ['/login', '/register', '/forgot-password', '/reset-password', '/admin', '/staff'].some((p) =>
         currentPath.startsWith(p)
       );
