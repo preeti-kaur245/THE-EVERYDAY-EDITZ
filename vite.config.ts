@@ -4,8 +4,11 @@ import { fileURLToPath } from 'url';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
+  const isVercel = process.env.VERCEL === '1' || process.env.DEPLOY_TARGET === 'vercel';
+  const base = isVercel ? '/' : (process.env.VITE_BASE || '/THE-EVERYDAY-EDITZ/');
+
   return {
-    base: '/THE-EVERYDAY-EDITZ/',
+    base,
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
