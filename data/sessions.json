@@ -1,0 +1,47 @@
+{
+  "admin": [
+    {
+      "token": "staff_eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6InN0YWZmIiwiaWF0IjoxNzk1MTA0ODQzOTQyLCJub25jZSI6ImI5ZmVlNzhlNGU4ZGViZDc0MjIxODgzNjEwYTIyMzJkIn0.YQIFah5Vpm0CS7gjWAg_4GiPVvPvtvbWzKnWFYjqLtA",
+      "username": "admin",
+      "role": "staff",
+      "createdAt": 1795104843942,
+      "expiresAt": 1795191243942
+    },
+    {
+      "token": "staff_eyJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6InN0YWZmIiwiaWF0IjoxNzk1MTA0ODczMTYwLCJub25jZSI6ImM2NjBmN2Y1M2M0OTI3ZmQxNGUwMmIyZWQyYzg4M2ZiIn0.T1d3fw3fdNsTPceYe4CCWOdFEnei6VNe6Q9qVrpr8yE",
+      "username": "admin",
+      "role": "staff",
+      "createdAt": 1795104873160,
+      "expiresAt": 1795191273160
+    }
+  ],
+  "customer": [
+    {
+      "token": "cust_eyJjdXN0b21lcklkIjoiQ1VTVC1JTkQtTVdOUUNJTDQiLCJlbWFpbCI6ImUyZV9hdXRoXzE3OTUxMDM2MjA2NjJAZXhhbXBsZS5jb20iLCJyb2xlIjoiY3VzdG9tZXIiLCJpYXQiOjE3OTUxMDM2MjA4ODgsImV4cCI6MTc5NzY5NTYyMDg4OCwibm9uY2UiOiJjNDVhNTY0Y2FlMGU5NDQ0OGQ0MjY4YjYzZmFiNGZjNiJ9.oo0tJuPzjEoN4-hVncL4hdLT5WQcCWvLtjJpb4nNpjE",
+      "customerId": "CUST-IND-MWNQCIL4",
+      "email": "e2e_auth_1795103620662@example.com",
+      "role": "customer",
+      "rememberMe": true,
+      "createdAt": 1795103620888,
+      "expiresAt": 1797695620888
+    },
+    {
+      "token": "cust_eyJjdXN0b21lcklkIjoiQ1VTVC1JTkQtTVdOUUQ0RFciLCJlbWFpbCI6ImUyZV9hdXRoXzE3OTUxMDM2NDg5MTJAZXhhbXBsZS5jb20iLCJyb2xlIjoiY3VzdG9tZXIiLCJpYXQiOjE3OTUxMDM2NDkxNDEsImV4cCI6MTc5NzY5NTY0OTE0MSwibm9uY2UiOiJiN2I2MzQ5NWNlYzE3YjVjMzA0NTkwOWZhYzUyZTgxNyJ9.Ehqvx18dORy4MvYlcO9f9iE0XNvrZjcL2yIuyIIWVdU",
+      "customerId": "CUST-IND-MWNQD4DW",
+      "email": "e2e_auth_1795103648912@example.com",
+      "role": "customer",
+      "rememberMe": true,
+      "createdAt": 1795103649141,
+      "expiresAt": 1797695649141
+    },
+    {
+      "token": "cust_eyJjdXN0b21lcklkIjoiQ1VTVC1JTkQtTVdOUjI3N1AiLCJlbWFpbCI6InZlcmlmeV9jdXN0XzE3OTUxMDQ4MTg5NzRAZXhhbXBsZS5jb20iLCJyb2xlIjoiY3VzdG9tZXIiLCJpYXQiOjE3OTUxMDQ4MTkyMDUsImV4cCI6MTc5NzY5NjgxOTIwNSwibm9uY2UiOiJiZWNiY2FkYjI1YzVlMWE3YzY2NzM4MjIwZjcyYWY2OSJ9.F38QMc5YTb8TpQn8Y5sqkbKQF4x3BOSlA7I-2aCPjh0",
+      "customerId": "CUST-IND-MWNR277P",
+      "email": "verify_cust_1795104818974@example.com",
+      "role": "customer",
+      "rememberMe": true,
+      "createdAt": 1795104819205,
+      "expiresAt": 1797696819205
+    }
+  ]
+}

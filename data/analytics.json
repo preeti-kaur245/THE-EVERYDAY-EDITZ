@@ -1,0 +1,18 @@
+{
+  "counters": {
+    "aiSearches": 0,
+    "budgetBasketsBuilt": 0,
+    "budgetBasketsConverted": 0,
+    "bundleAdded": 0,
+    "recommendationClicks": 0,
+    "visualSearches": 0,
+    "reelClicks": 0,
+    "wishlistSaves": 0,
+    "waitlistSignups": 0,
+    "checkoutsStarted": 0,
+    "ordersCompleted": 0
+  },
+  "promptCounts": {},
+  "budgetTierCounts": {},
+  "recentEvents": []
+}
